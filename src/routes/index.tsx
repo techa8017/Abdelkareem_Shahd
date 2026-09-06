@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MapPin, Send, Volume2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { MapPin, Send, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import botanicalCorner from "@/assets/botanical-corner.png";
 import openingFilm from "@/assets/opening-film.mp4";
@@ -29,7 +29,11 @@ export const Route = createFileRoute("/")({
 });
 
 const weddingDate = new Date("2026-09-17T22:00:00+03:00");
-const mapsUrl = "https://www.google.com/maps/place/Grand+Star+Assiut/@27.1837438,31.0426989,17z/data=!4m6!3m5!1s0x14450652b0b6ca95:0x8cce09ddf8916dc!8m2!3d27.1850131!4d31.0484496!16s%2Fg%2F11bbxl4q0s?entry=ttu&g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D";
+const mapsUrl =
+  "https://www.google.com/maps/place/Grand+Star+Assiut/@27.1837438,31.0426989,17z/data=!4m6!3m5!1s0x14450652b0b6ca95:0x8cce09ddf8916dc!8m2!3d27.1850131!4d31.0484496!16s%2Fg%2F11bbxl4q0s?entry=ttu&g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D";
+
+// IDs for every section we want the auto-scroll to visit, in order.
+const SECTION_IDS = ["invitation", "wedding-date", "venue", "guestbook", "closing"];
 
 function useCountdown() {
   const [remaining, setRemaining] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -55,65 +59,166 @@ function useCountdown() {
 function Index() {
   const [entered, setEntered] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
+  const [showSkip, setShowSkip] = useState(false);
   const [muted, setMuted] = useState(false);
   const [sent, setSent] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hasFinishedRef = useRef(false); // guards against double-triggering the transition
+  const lastInteractionRef = useRef(0);
+
   const countdown = useCountdown();
 
-useEffect(() => {
-  const video = videoRef.current;
-  if (!video) return;
+  // Moves past the opening video and reveals the site. Safe to call more than once.
+  const finishFilm = useCallback(() => {
+    if (hasFinishedRef.current) return;
+    hasFinishedRef.current = true;
 
-  video.muted = true;
-  video.pause();
-  video.currentTime = 0;
+    setEntered(true);
+    setNeedsTap(false);
+    setShowSkip(false);
 
-  setNeedsTap(true);
-}, []);
+    videoRef.current?.pause();
 
-const beginFilm = async () => {
-  const video = videoRef.current;
-  const audio = audioRef.current;
+    window.setTimeout(() => {
+      document.querySelector("#invitation")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 300);
+  }, []);
 
-  if (!video || !audio) return;
-
-  video.muted = true;
-
-  await audio.play();
-  await video.play();
-
-  setNeedsTap(false);
-};
-
-const finishFilm = () => {
-  setEntered(true);
-
-  window.setTimeout(
-    () => document.querySelector("#invitation")?.scrollIntoView(),
-    1000
-  );
-};
-
-  const toggleMusic = () => {
+  const toggleMusic = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.muted = !audio.muted;
     setMuted(audio.muted);
+  }, []);
+
+  // Set up the intro video: reset it, show the tap prompt, and skip straight
+  // to the site if the video (or audio) ever errors out.
+  useEffect(() => {
+    const video = videoRef.current;
+    const audio = audioRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.pause();
+    video.currentTime = 0;
+    setNeedsTap(true);
+
+    const handleError = () => {
+      console.warn("Opening media failed to load, skipping intro.");
+      finishFilm();
+    };
+
+    video.addEventListener("error", handleError);
+    audio?.addEventListener("error", handleError);
+    return () => {
+      video.removeEventListener("error", handleError);
+      audio?.removeEventListener("error", handleError);
+    };
+  }, [finishFilm]);
+
+  const beginFilm = async () => {
+    const video = videoRef.current;
+    const audio = audioRef.current;
+    if (!video || !audio) return;
+
+    setNeedsTap(false);
+    video.muted = true;
+
+    // Safety net: if playback hasn't actually started within 3s, stop waiting
+    // and just show the site instead of leaving the visitor stuck.
+    const watchdog = window.setTimeout(() => {
+      finishFilm();
+    }, 3000);
+
+    try {
+      await Promise.all([audio.play(), video.play()]);
+      window.clearTimeout(watchdog);
+      setShowSkip(true);
+    } catch (err) {
+      console.warn("Playback failed, skipping intro:", err);
+      window.clearTimeout(watchdog);
+      finishFilm();
+    }
   };
+
+  // Auto-scroll: every 5s, move to the next section and center it.
+  // Pauses briefly if the person just scrolled/touched manually.
+  useEffect(() => {
+    if (!entered) return;
+
+    const markInteraction = () => {
+      lastInteractionRef.current = Date.now();
+    };
+    window.addEventListener("wheel", markInteraction, { passive: true });
+    window.addEventListener("touchmove", markInteraction, { passive: true });
+
+    let index = 0;
+    const timer = window.setInterval(() => {
+      const idleFor = Date.now() - lastInteractionRef.current;
+      if (idleFor < 4000) return; // skip this tick if user just interacted
+
+      index = (index + 1) % SECTION_IDS.length;
+      document.getElementById(SECTION_IDS[index])?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 5000);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("wheel", markInteraction);
+      window.removeEventListener("touchmove", markInteraction);
+    };
+  }, [entered]);
 
   return (
     <main className="overflow-hidden bg-background text-foreground">
-<audio ref={audioRef} src={weddingSong} loop preload="auto" />
+      <audio ref={audioRef} src={weddingSong} loop preload="auto" />
+
       <section className={`opening ${entered ? "opening-finished" : ""}`} aria-label="Invitation opening">
-<video ref={videoRef} className="opening-video" src={openingFilm} playsInline muted preload="auto" onEnded={finishFilm} />
-        {needsTap && <div className="tap-layer"><Button variant="invitationOutline" size="lg" onClick={beginFilm} className="border-ivory/60 bg-transparent text-ivory">Tap to begin</Button></div>}
+        <video
+          ref={videoRef}
+          className="opening-video"
+          src={openingFilm}
+          poster={heroBg}
+          playsInline
+          muted
+          preload="auto"
+          onEnded={finishFilm}
+        />
+        {needsTap && (
+          <div className="tap-layer">
+            <Button variant="invitationOutline" size="lg" onClick={beginFilm} className="border-ivory/60 bg-transparent text-ivory">
+              Tap to begin
+            </Button>
+          </div>
+        )}
+        {showSkip && !entered && (
+          <button type="button" onClick={finishFilm} className="skip-button" aria-label="Skip intro">
+            Skip <SkipForward size={16} />
+          </button>
+        )}
       </section>
 
-      {entered && <Button variant="invitationOutline" size="icon" onClick={toggleMusic} className="music-control" aria-label={muted ? "Unmute music" : "Mute music"}>{muted ? <VolumeX /> : <Volume2 />}</Button>}
+      {entered && (
+        <Button
+          variant="invitationOutline"
+          size="icon"
+          onClick={toggleMusic}
+          className="music-control"
+          aria-label={muted ? "Unmute music" : "Mute music"}
+        >
+          {muted ? <VolumeX /> : <Volume2 />}
+        </Button>
+      )}
 
       <section id="invitation" className="hero-invitation relative flex min-h-screen items-center justify-center px-5 py-24 text-center text-ivory">
-<img src={heroBg} alt="Candlelit golden hall aisle lined with roses and candles" className="absolute inset-0 h-full w-full object-cover" width={1920} height={1088} />
+        <img src={heroBg} alt="Candlelit golden hall aisle lined with roses and candles" className="absolute inset-0 h-full w-full object-cover" width={1920} height={1088} />
         <div className="hero-shade" />
         <div className="relative z-10 max-w-4xl">
           <p className="eyebrow text-ivory/80">Together with their families</p>
@@ -123,8 +228,7 @@ const finishFilm = () => {
         </div>
       </section>
 
-      <section className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
-
+      <section id="wedding-date" className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
         <img src={botanicalCorner} alt="White roses and sage botanical arrangement" width={1024} height={1024} className="botanical botanical-right" />
         <div className="calendar-card relative z-10 mx-auto max-w-2xl">
           <p className="eyebrow text-primary">Thursday</p>
@@ -132,7 +236,7 @@ const finishFilm = () => {
           <div className="ornament text-primary"><span>◆</span></div>
           <h2 className="mt-7 font-display text-4xl uppercase sm:text-5xl">September</h2>
           <p className="mt-3 text-sm tracking-[0.38em]">2026</p>
-          <p className="mt-8 font-display text-2xl italic text-muted-foreground">Ten o’clock in the evening</p>
+          <p className="mt-8 font-display text-2xl italic text-muted-foreground">Ten o'clock in the evening</p>
           <p className="mt-3 text-xs uppercase tracking-[0.3em] text-primary">10:00 PM</p>
 
           <div className="mt-14 border-t border-border pt-12">
@@ -149,7 +253,7 @@ const finishFilm = () => {
         </div>
       </section>
 
-      <section className="venue-section relative flex min-h-[78vh] items-center justify-center px-6 py-24 text-center text-ivory">
+      <section id="venue" className="venue-section relative flex min-h-[78vh] items-center justify-center px-6 py-24 text-center text-ivory">
         <img src={weddingHall} alt="Grand Palace wedding aisle illuminated by candles" loading="lazy" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
         <div className="venue-shade" />
         <div className="relative z-10 max-w-2xl">
@@ -164,8 +268,7 @@ const finishFilm = () => {
         </div>
       </section>
 
-      <section className="paper-section parchment-section relative px-5 py-24 sm:py-32">
-
+      <section id="guestbook" className="paper-section parchment-section relative px-5 py-24 sm:py-32">
         <img src={botanicalCorner} alt="" aria-hidden="true" loading="lazy" width={1024} height={1024} className="botanical botanical-left" />
         <div className="invitation-frame relative z-10 mx-auto max-w-2xl text-center">
           <p className="eyebrow text-primary">For our memories</p>
@@ -186,9 +289,8 @@ const finishFilm = () => {
         </div>
       </section>
 
-
-      <footer className="ending relative flex min-h-[92vh] items-center justify-center px-5 py-24 text-center text-ivory">
-<img src={endingBg} alt="Candlelit archway framed with cream roses" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      <footer id="closing" className="ending relative flex min-h-[92vh] items-center justify-center px-5 py-24 text-center text-ivory">
+        <img src={endingBg} alt="Candlelit archway framed with cream roses" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         <div className="ending-shade" />
         <div className="relative z-10 max-w-3xl">
           <h2 className="see-you font-display">See you<br />There</h2>
