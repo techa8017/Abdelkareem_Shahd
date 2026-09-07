@@ -276,7 +276,7 @@ function Index() {
 <section className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
         <img src={botanicalCorner} alt="White roses and sage botanical arrangement" width={1024} height={1024} className="botanical botanical-right" />
 <div id="wedding-date" className="calendar-card relative z-10 mx-auto max-w-2xl">
-  <div className="mb-8 text-center" dir="rtl" lang="ar">
+<div className="mb-4 text-center" dir="rtl" lang="ar">
     <p className="ayah-text">
       وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً إِنَّ فِي ذَٰلِكَ لَآيَاتٍ لِّقَوْمٍ يَتَفَكَّرُونَ
     </p>
@@ -303,7 +303,7 @@ function Index() {
           </div>
         </div>
       </section>
-<section id="our-story" className="story-portrait-section paper-section relative flex min-h-screen items-center justify-center px-5 py-16 text-center">
+<section id="our-story" className="story-portrait-section paper-section relative px-5 py-10 text-center">
   <div className="relative z-10 mx-auto max-w-4xl">
     <p className="eyebrow text-primary">A love that grows</p>
     <h2 className="section-title">Our Story</h2>
