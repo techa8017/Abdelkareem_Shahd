@@ -148,6 +148,47 @@ function Index() {
 
   // Auto-scroll: every 5s, move to the next section and center it.
   // Pauses briefly if the person just scrolled/touched manually.
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+
+    if (rect.height <= viewportHeight) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      const targetY = window.scrollY + rect.top - 24;
+      window.scrollTo({ top: targetY, behavior: "smooth" });
+    }
+  };
+
+  // Figures out which section is currently closest to the center of the
+  // screen — so auto-scroll always advances from where the visitor actually
+  // is, not from an independent counter.
+  const getCurrentSectionIndex = () => {
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const viewportCenter = window.scrollY + viewportHeight / 2;
+
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+
+    SECTION_IDS.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const elCenter = window.scrollY + rect.top + rect.height / 2;
+      const distance = Math.abs(elCenter - viewportCenter);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = i;
+      }
+    });
+
+    return closestIndex;
+  };
+
+
   useEffect(() => {
     if (!entered) return;
 
@@ -157,16 +198,16 @@ function Index() {
     window.addEventListener("wheel", markInteraction, { passive: true });
     window.addEventListener("touchmove", markInteraction, { passive: true });
 
-    let index = 0;
     const timer = window.setInterval(() => {
       const idleFor = Date.now() - lastInteractionRef.current;
-      if (idleFor < 4000) return; // skip this tick if user just interacted
+      const isTyping =
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA";
+      if (idleFor < 4000 || isTyping) return; // skip this tick
 
-      index = (index + 1) % SECTION_IDS.length;
-      document.getElementById(SECTION_IDS[index])?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+      const currentIndex = getCurrentSectionIndex();
+      const nextIndex = (currentIndex + 1) % SECTION_IDS.length;
+      scrollToSection(SECTION_IDS[nextIndex]);
     }, 5000);
 
     return () => {
@@ -228,16 +269,16 @@ function Index() {
         </div>
       </section>
 
-      <section id="wedding-date" className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
+<section className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
         <img src={botanicalCorner} alt="White roses and sage botanical arrangement" width={1024} height={1024} className="botanical botanical-right" />
-        <div className="calendar-card relative z-10 mx-auto max-w-2xl">
+        <div id="wedding-date" className="calendar-card relative z-10 mx-auto max-w-2xl">
           <p className="eyebrow text-primary">Thursday</p>
           <p className="calendar-number">17</p>
           <div className="ornament text-primary"><span>◆</span></div>
           <h2 className="mt-7 font-display text-4xl uppercase sm:text-5xl">September</h2>
           <p className="mt-3 text-sm tracking-[0.38em]">2026</p>
-          <p className="mt-8 font-display text-2xl italic text-muted-foreground">Ten o'clock in the evening</p>
-          <p className="mt-3 text-xs uppercase tracking-[0.3em] text-primary">10:00 PM</p>
+          <p className="mt-8 font-display text-2xl italic text-muted-foreground">Nine o'clock in the evening</p>
+          <p className="mt-3 text-xs uppercase tracking-[0.3em] text-primary">9:00 PM</p>
 
           <div className="mt-14 border-t border-border pt-12">
             <p className="eyebrow text-primary">Counting down to our day</p>
@@ -268,9 +309,9 @@ function Index() {
         </div>
       </section>
 
-      <section id="guestbook" className="paper-section parchment-section relative px-5 py-24 sm:py-32">
+<section className="paper-section parchment-section relative px-5 py-24 sm:py-32">
         <img src={botanicalCorner} alt="" aria-hidden="true" loading="lazy" width={1024} height={1024} className="botanical botanical-left" />
-        <div className="invitation-frame relative z-10 mx-auto max-w-2xl text-center">
+        <div id="guestbook" className="invitation-frame relative z-10 mx-auto max-w-2xl text-center">
           <p className="eyebrow text-primary">For our memories</p>
           <h2 className="section-title">Leave Us a Kind Word</h2>
           <div className="ornament my-8 text-primary"><span>◆</span></div>
@@ -297,6 +338,7 @@ function Index() {
           <div className="ornament my-9 text-gold-light"><span>◆</span></div>
           <p className="text-xs uppercase tracking-[0.32em] text-ivory/90 sm:text-sm">Abdelkareem &nbsp;&amp;&nbsp; Shahd</p>
           <p className="mt-4 text-xs uppercase tracking-[0.32em] text-gold-light">17 • 09 • 2026</p>
+                    <p className="mt-4 text-xs uppercase tracking-[0.32em] text-gold-light">9 PM</p>
         </div>
       </footer>
     </main>
