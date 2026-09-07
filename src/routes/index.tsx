@@ -273,7 +273,7 @@ function Index() {
         </div>
       </section>
 
-<section className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
+<section className="paper-section parchment-section relative px-5 py-14 text-center sm:py-20">
         <img src={botanicalCorner} alt="White roses and sage botanical arrangement" width={1024} height={1024} className="botanical botanical-right" />
 <div id="wedding-date" className="calendar-card relative z-10 mx-auto max-w-2xl">
 <div className="mb-4 text-center" dir="rtl" lang="ar">
@@ -285,14 +285,14 @@ function Index() {
   <p className="eyebrow text-primary">Thursday</p>
           <p className="calendar-number">17</p>
           <div className="ornament text-primary"><span>◆</span></div>
-          <h2 className="mt-7 font-display text-4xl uppercase sm:text-5xl">September</h2>
+<h2 className="mt-4 font-display text-3xl uppercase sm:text-5xl">September</h2>
           <p className="mt-3 text-sm tracking-[0.38em]">2026</p>
-          <p className="mt-8 font-display text-2xl italic text-muted-foreground">Nine o'clock in the evening</p>
+<p className="mt-5 font-display text-xl italic text-muted-foreground">Nine o'clock in the evening</p>
           <p className="mt-3 text-xs uppercase tracking-[0.3em] text-primary">9:00 PM</p>
 
-          <div className="mt-14 border-t border-border pt-12">
+<div className="mt-8 border-t border-border pt-8">
             <p className="eyebrow text-primary">Counting down to our day</p>
-            <div className="mx-auto mt-9 grid max-w-xl grid-cols-4 gap-y-4">
+<div className="mx-auto mt-6 grid max-w-xl grid-cols-4 gap-y-4">
               {Object.entries(countdown).map(([label, value]) => (
                 <div key={label} className="countdown-cell px-1">
                   <span className="block font-display text-3xl leading-none text-primary sm:text-5xl">{String(value).padStart(2, "0")}</span>
