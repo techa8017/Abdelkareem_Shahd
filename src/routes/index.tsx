@@ -22,11 +22,13 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Abdelkareem & Shahd | Wedding Invitation" },
       { property: "og:description", content: "A celebration of love, illuminated by candlelight." },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://abdelkareem-shahd.techa8017.workers.dev/share-image.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://abdelkareem-shahd.techa8017.workers.dev/share-image.jpg" },
     ],
   }),
-  component: Index,
-});
 
 const weddingDate = new Date("2026-09-17T21:00:00+03:00");
 const mapsUrl =
