@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const weddingDate = new Date("2026-09-17T22:00:00+03:00");
+const weddingDate = new Date("2026-09-17T21:00:00+03:00");
 const mapsUrl =
   "https://www.google.com/maps/place/Grand+Star+Assiut/@27.1837438,31.0426989,17z/data=!4m6!3m5!1s0x14450652b0b6ca95:0x8cce09ddf8916dc!8m2!3d27.1850131!4d31.0484496!16s%2Fg%2F11bbxl4q0s?entry=ttu&g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D";
 
