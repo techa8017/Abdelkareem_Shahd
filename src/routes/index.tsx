@@ -7,7 +7,7 @@ import openingFilm from "@/assets/opening-film.mp4";
 import weddingSong from "@/assets/wedding-song.mp3";
 import weddingHall from "@/assets/wedding-hall.jpg";
 import heroBg from "@/assets/bg-hero.jpg";
-
+import storyPortrait from "@/assets/our-story.jpg";
 import endingBg from "@/assets/bg-ending.jpg";
 import { Button } from "@/components/ui/button";
 
@@ -37,7 +37,7 @@ const mapsUrl =
   "https://www.google.com/maps/place/Grand+Star+Assiut/@27.1837438,31.0426989,17z/data=!4m6!3m5!1s0x14450652b0b6ca95:0x8cce09ddf8916dc!8m2!3d27.1850131!4d31.0484496!16s%2Fg%2F11bbxl4q0s?entry=ttu&g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D";
 
 // IDs for every section we want the auto-scroll to visit, in order.
-const SECTION_IDS = ["invitation", "wedding-date", "venue", "guestbook", "closing"];
+const SECTION_IDS = ["invitation", "wedding-date", "our-story", "venue", "guestbook", "closing"];
 
 function useCountdown() {
   const [remaining, setRemaining] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -239,7 +239,7 @@ function Index() {
         {needsTap && (
           <div className="tap-layer">
             <Button variant="invitationOutline" size="lg" onClick={beginFilm} className="border-ivory/60 bg-transparent text-ivory">
-              Tap to begin
+              اضغط لفتح الدعوة
             </Button>
           </div>
         )}
@@ -275,8 +275,14 @@ function Index() {
 
 <section className="paper-section parchment-section relative px-5 py-24 text-center sm:py-32">
         <img src={botanicalCorner} alt="White roses and sage botanical arrangement" width={1024} height={1024} className="botanical botanical-right" />
-        <div id="wedding-date" className="calendar-card relative z-10 mx-auto max-w-2xl">
-          <p className="eyebrow text-primary">Thursday</p>
+<div id="wedding-date" className="calendar-card relative z-10 mx-auto max-w-2xl">
+  <div className="mb-8 text-center" dir="rtl" lang="ar">
+    <p className="ayah-text">
+      وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً إِنَّ فِي ذَٰلِكَ لَآيَاتٍ لِّقَوْمٍ يَتَفَكَّرُونَ
+    </p>
+    <p className="ayah-source">سُورَةُ الرُّومِ، ٢١</p>
+  </div>
+  <p className="eyebrow text-primary">Thursday</p>
           <p className="calendar-number">17</p>
           <div className="ornament text-primary"><span>◆</span></div>
           <h2 className="mt-7 font-display text-4xl uppercase sm:text-5xl">September</h2>
@@ -297,7 +303,29 @@ function Index() {
           </div>
         </div>
       </section>
-
+<section id="our-story" className="story-portrait-section paper-section relative flex min-h-screen items-center justify-center px-5 py-16 text-center">
+  <div className="relative z-10 mx-auto max-w-4xl">
+    <p className="eyebrow text-primary">A love that grows</p>
+    <h2 className="section-title">Our Story</h2>
+    <div className="ornament my-8 text-primary"><span>◆</span></div>
+    <figure className="story-portrait mx-auto">
+      <div className="story-portrait-mat">
+        <img
+          src={storyPortrait}
+          alt="Two children dressed for a wedding, embracing and smiling"
+          loading="lazy"
+          width={768}
+          height={956}
+          className="story-portrait-image"
+        />
+      </div>
+      <figcaption className="story-quote">
+        <span aria-hidden="true" className="story-quote-mark">&ldquo;</span>
+        <blockquote>Two little lives, growing in their own way, until one day their paths became one.</blockquote>
+      </figcaption>
+    </figure>
+  </div>
+</section>
       <section id="venue" className="venue-section relative flex min-h-[78vh] items-center justify-center px-6 py-24 text-center text-ivory">
         <img src={weddingHall} alt="Grand Palace wedding aisle illuminated by candles" loading="lazy" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
         <div className="venue-shade" />
