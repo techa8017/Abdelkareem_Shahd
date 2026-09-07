@@ -29,6 +29,8 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: "https://abdelkareem-shahd.techa8017.workers.dev/share-image.jpg" },
     ],
   }),
+  component: Index,
+});
 
 const weddingDate = new Date("2026-09-17T21:00:00+03:00");
 const mapsUrl =
